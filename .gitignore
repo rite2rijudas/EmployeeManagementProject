@@ -2,3 +2,7 @@
 *.cached
 *.suo
 *.dll
+
+.vs/
+bin/
+obj/
