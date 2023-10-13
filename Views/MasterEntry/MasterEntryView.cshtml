@@ -1,0 +1,142 @@
+﻿@model EMPLOYEE_MANAGEMENT.Models.MasterEntryDetails
+@{
+    ViewBag.Title = "MasterEntryView";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+        var errormsg = @Html.Raw(Json.Encode(TempData["errormsg"]));
+        if (errormsg != null) {
+            swal({
+                title: errormsg,
+                icon: "error"
+            });
+        }
+        var successmsg = @Html.Raw(Json.Encode(TempData["successmsg"]));
+        if (successmsg != null) {
+            swal({
+                title: successmsg,
+                icon: "success"
+            });
+        }
+    });
+
+    function ValidateFields() {
+
+
+        if ($('#mastertype option:selected').val() = "") {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+</script>
+
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-12">
+                    <h1>View Master Entry </h1>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="content">
+        <div class="col-md-12">
+            <div class="card card-secondary">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-search text-green"></i>Master Entry List
+                    </h3>
+                </div>
+                <div class="card-body">
+                    @using (Html.BeginForm("MasterEntryView", "MasterEntry", FormMethod.Post))
+                    {
+                        <div class="row">
+                            <div class="col-md-4">
+                                @Html.DropDownListFor(model => model.MasterCode, (IEnumerable<SelectListItem>)ViewBag.MasterItemTypes, "--Select--", new { @class = "form-control form-control-sm select2", @id = "mastertype" })
+                            </div>
+                            <div class="col-md-2">
+                                <button class="btn btn-secondary" onclick="ValidateFields()" type="submit">
+                                    <i class="fa fa-search"></i>Search
+                                </button>
+                            </div>
+
+                        </div>
+                    }
+
+                    @if (Model.list1 != null && Model.list1.Count > 0)
+                    {
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-bordered table-striped dtr-inline ds">
+                                    <thead>
+                                        <tr>
+                                            <td>
+                                                Record Name
+                                            </td>
+                                            <td>
+                                                Record Status
+                                            </td>
+
+                                            <td>
+                                                Action
+                                            </td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+
+
+                                        @foreach (var item in Model.list1)
+                                        {
+                                        <tr>
+                                            <td>@item.RecordName</td>
+                                            <td>@item.RecordStatus</td>
+                                          
+                                            <td>
+                                                <div class="btn-group dropleft">
+                                                    <button type="button" class="btn btn-info btn-sm">Action</button>
+                                                    <button type="button" class="btn btn-info btn-sm dropdown-toggle dropdown-icon" data-toggle="dropdown">
+                                                        <span class="sr-only">Toggle Dropdown</span>
+                                                    </button>
+                                                    <div class="dropdown-menu" role="menu">
+                                                        <a class="dropdown-item" href="@Url.Action("MasterItemEdit", "MasterEntry", new {id=item.RecordId})"><i class="fa fa-user-edit"></i> &nbsp; Edit</a>
+                                                        @*<a class="dropdown-item" href="#"><i class="fa fa-pause"></i> &nbsp; Hold</a>*@
+                                                        @if (item.RecordStatus.ToUpper() == "ACTIVE")
+                                                        {
+                                                            <a class="dropdown-item" href="@Url.Action("HoldOrReleaseMasterItem", "MasterEntry", new {id=item.RecordId,Status="INACTIVE",MasterCode=item.MasterCode})"><i class="fa fa-pause"></i> &nbsp; Hold</a>
+                                                        }
+                                                        @if (item.RecordStatus.ToUpper() == "INACTIVE")
+                                                        {
+                                                            <a class="dropdown-item" href="@Url.Action("HoldOrReleaseMasterItem", "MasterEntry", new {id=item.RecordId,Status="ACTIVE",MasterCode=item.MasterCode})"><i class="fa fa-play"></i> &nbsp; Release</a>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        }
+
+
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
+
+                </div>
+                @*<div class="card-footer text-right">
+                    <button class="btn btn-info" type="submit">
+                        <i class="fa fa-save"></i>Save Catalouge Details
+                    </button>
+                    <button class="btn btn-secondary" type="submit">
+                        <i class="fa fa-search"></i>View Old Records
+                    </button>
+                </div>*@
+            </div>
+        </div>
+    </section>
+
+</div>

@@ -1,0 +1,416 @@
+﻿@model EMPLOYEE_MANAGEMENT.Models.AccountDetails
+@using Newtonsoft.Json
+@{
+    ViewBag.Title = "profile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+
+<div class="content-wrapper">
+    <section class="content-header">
+        <h1>
+            User
+            <small>Profile</small>
+        </h1>
+        @*<ol class="breadcrumb">
+            <li><a href="@Url.Action("Dashboardv1", "Dashboard")"><i class="fa fa-dashboard"></i> Home</a></li>
+            <li class="active"><a href="@Url.Action("profile", "Login")">Profile</a></li>
+        </ol>*@
+    </section>
+    <section class="content">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="box box-primary box-solid">
+
+                    <div class="box-body box-profile">
+
+                        <img class="profile-user-img img-responsive img-circle" src="~/Images/@Model.EmpImage" alt="User profile picture">
+
+                        <h3 class="profile-username text-center">@Model.EmpName</h3>
+
+                        <p class="text-muted text-center">@Model.EmpDesig</p>
+
+                        <ul class="list-group list-group-unbordered">
+                            <li class="list-group-item">
+                                <b><i class="fa fa-birthday-cake text-red"></i>&nbsp;&nbsp;Birthday</b> <a class="pull-right">@Model.EmpDob</a>
+                            </li>
+                            <li class="list-group-item">
+                                <b> <i class="fa fa-calendar text-red"></i>&nbsp;&nbsp;Working From</b> <a class="pull-right">@Model.EmpDoj</a>
+                            </li>
+
+                        </ul>
+
+                        <strong><i class="fa fa-map-marker margin-r-5"></i> Location</strong>
+
+                        <p class="text-muted">@Model.EmpLoc</p>
+
+                        <hr>
+
+                        <strong><i class="fa fa-pencil margin-r-5"></i> Skills</strong>
+                        @*<p>
+                            @foreach (var item in Model.det.Select((x, i) => new { Data = x, Index = i + 1 }))
+                            {
+                                if (@item.Index == 1 || @item.Index == 6 || @item.Index == 11)
+                                {
+
+                                    <span class="label label-danger">
+                                        @item.Data.AsOf
+                                    </span>
+                                    <span>&nbsp;</span>
+
+                                }
+
+                                if (@item.Index == 2 || @item.Index == 7 || @item.Index == 12)
+                                {
+                                    <span class="label label-success">
+                                        @item.Data.AsOf
+                                    </span>
+                                    <span>&nbsp;</span>
+
+                                }
+
+                                if (@item.Index == 3 || @item.Index == 8 || @item.Index == 13)
+                                {
+                                    <span class="label label-info">
+                                        @item.Data.AsOf
+                                    </span>
+                                    <span>&nbsp;</span>
+                                }
+
+                                if (@item.Index == 4 || @item.Index == 9 || @item.Index == 14)
+                                {
+                                    <span class="label label-warning">
+                                        @item.Data.AsOf
+                                    </span>
+                                    <span>&nbsp;</span>
+                                }
+
+                                if (@item.Index == 5 || @item.Index == 10 || @item.Index == 15)
+                                {
+                                    <span class="label label-primary">
+                                        @item.Data.AsOf
+                                    </span>
+                                    <span>&nbsp;</span>
+                                }
+                            }
+
+                        </p>*@
+                        @*<p>
+                                <span class="label label-danger">UI Design</span>
+                                <span class="label label-success">Coding</span>
+                                <span class="label label-info">Javascript</span>
+                                <span class="label label-warning">PHP</span>
+                                <span class="label label-primary">Node.js</span>
+                            </p>*@
+
+                        <hr>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+
+                @{
+                    if (Model.UserType != "SUPER ADMIN")
+                    {
+
+                        <div class="box box-success box-solid">
+                            <div class="box-body">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <form action="UserEmailChange" method="post">
+                                            <div class="form-group has-success">
+                                                <label class="control-label" for="inputSuccess"><i class="fa fa-envelope"></i> Email Address</label><br />
+                                                <div class="col-md-8">
+                                                    @Html.TextBoxFor(model => model.EmailID, new { placeholder = "email Id", @class = "form-control", @name = "EmailID", @id = "txtemail", @disabled = "disabled" })
+                                                    @*<input type="text" class="form-control" name="EmailID" id="" placeholder="rahulgorai@gmail.com" disabled>*@
+                                                </div>
+
+                                                <a id="enMail" class="btn btn-default" onclick="changeStat()">Change Email</a>
+                                                @*<button class="btn btn-default" id="enMail" onclick="changeStat()">Change Email</button>*@
+                                                <button type="submit" class="btn btn-success hidden" id="svMail">Update Email Address</button>
+                                            </div>
+                                        </form>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+
+
+
+                <div class="box box-danger box-solid">
+                    <div class="box-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <form method="post" action="UserContactChange">
+                                    <div class="form-group has-error">
+                                        <label class="control-label" for="inputSuccess"><i class="fa fa-phone-square"></i> Contact & Login</label><br />
+                                        <div class="col-md-8">
+                                            @Html.TextBoxFor(model => model.Login, new { placeholder = "Phone Number", @class = "form-control", @name = "Login", @id = "txtContact", @disabled = "disabled" })
+                                            @*<input type="text" class="form-control" id="txtContact" placeholder="8420000394" disabled />*@
+                                        </div>
+                                        <a class="btn btn-default" id="enPh" onclick="changeStatPh()">Change Phone</a>
+                                        <button class="btn btn-success hidden" id="svPh">Update Phone Number</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @if (TempData["alertmessage"] != null)
+                {
+                    var message = TempData["alertmessage"];
+                    <script type="text/javascript">
+                                            alert(@Html.Raw(Json.Encode(TempData["alertmessage"])));
+                    </script>
+                }
+                <div class="box box-warning box-solid">
+                    <div class="box-body">
+                        <div class="row">
+                            <div class="col-md-12">
+
+                                <div class="form-group has-warning">
+                                    @using (Ajax.BeginForm("UserPasswordReset", "Login", new AjaxOptions { HttpMethod = "POST", OnSuccess = "OnsuccessChangePassword" }, new { @id = "ChangePasswordID", role = "form" }))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <label class="control-label" for="inputSuccess"><i class="fa fa-lock"></i> Password</label><br />
+
+                                        <div class="col-md-8">
+                                            <div class="form-group">
+                                                <label>Current Password</label>
+                                                @Html.TextBoxFor(model => model.Password, new { @type = "password", @class = "form-control", @autocomplete = "off", @id = "txtPass", @placeholder = "******", @disabled = "disabled" })
+                                                @*<input type="password" class="form-control" id="txtPass" placeholder="******" disabled>*@
+                                            </div>
+                                            <div class="form-group" style="display:none" id="np">
+                                                <label>New Password</label>
+                                                <input type="text" name="emailid" value="abc@xyz.com" style="display: none;" />
+                                                @Html.TextBoxFor(m => m.Newpassword, new { @type = "password", @class = "form-control", @autocomplete = "off", @id = "txtNewPass", @placeholder = "******" })
+                                                @*<input type="password" class="form-control" id="txtNewPass" placeholder="******">*@
+                                                <div class="pwstrength_viewport_progress"></div>
+                                            </div>
+                                            <div class="form-group" style="display:none" id="rp">
+                                                <label>Retype Password</label>
+                                                @Html.TextBoxFor(m => m.ConfirmedPassword, new { @type = "password", @class = "form-control", @autocomplete = "off", @id = "txtConfirmPass", @placeholder = "******" })
+                                                @*<input type="text" class="form-control" id="txtConfirmPass" placeholder="******">*@
+                                            </div>
+                                        </div><br />
+
+                                        <input type="submit" class="btn btn-success hidden" id="svPass" value="Update Password" />
+                                    }
+                                    <input type="button" class="btn btn-default" id="enPass" onclick="changeStatPass()" value="Change Password" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="box box-danger box-solid">
+                    <div class="box-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <form method="post" action="UserImageChange">
+                                    <div class="form-group has-error">
+                                        <label class="control-label" for="inputSuccess"><i class="fa fa-phone-square"></i> Profile Image</label><br />
+                                        <div class="col-md-8">
+                                            @Html.TextBoxFor(model => model.EmpImage, new {@class = "form-control", @id = "brws_img", @type="file", @disabled = "disabled" })
+                                            @*<input type="text" class="form-control" id="txtContact" placeholder="8420000394" disabled />*@
+                                        </div>
+                                        <a class="btn btn-default" id="enImg" onclick="changeImage()">Change Profile Image</a>
+                                        <button class="btn btn-success hidden" id="svImg">Update Profile Image</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+
+<script type="text/javascript">
+    function changeStat() {
+        $("#txtemail").removeAttr('disabled');
+        $("#enMail").hide();
+        $("#svMail").removeClass("hidden");
+    };
+    function changeStatPh() {
+        $("#txtContact").removeAttr('disabled');
+        $("#enPh").hide();
+        $("#svPh").removeClass("hidden");
+    };
+    function changeImage() {
+        $("#brws_img").removeAttr('disabled');
+        $("#enImg").hide();
+        $("#svImg").removeClass("hidden");
+        //
+    }
+    function changeStatPass() {
+        $("#txtPass").removeAttr('disabled');
+        $("#enPass").hide();
+        $("#svPass").removeClass("hidden");
+        $("#np").slideDown();
+        $("#rp").slideDown();
+
+    }
+
+    $(document).ready(function (key, val) {
+         $("#svImg").click(function (ev) {
+            ev.preventDefault();
+            if (window.FormData !== undefined) {
+                var fileUpload = $("#brws_img").get(0);
+            var files = fileUpload.files;
+
+            // Create FormData object
+            var fileData = new FormData();
+
+            // Looping over all files and add it to FormData object
+            for (var i = 0; i < files.length; i++) {
+                fileData.append(files[i].name, files[i]);
+            }
+
+            // Adding one more key to FormData object
+            //fileData.append('username', ‘Manas’);
+
+            $.ajax({
+                url: '/Login/UploadFiles',
+                type: "POST",
+                contentType: false, // Not to set any content header
+                processData: false, // Not to process data
+                data: fileData,
+                success: function (result) {
+                    var ret = JSON.parse(result);
+                    //alert(ret);
+                    if (ret.stat == "1") {
+                        alert(ret.msg)
+                       var url = '@Url.Action("profile", "Login")';
+                        window.location.href = url
+                    } else {
+                        alert(ret.msg)
+                    }
+                    
+                },
+                error: function (err) {
+                    alert(err.statusText);
+                }
+            });
+            } else {
+                alert("Form data is not supported.");
+            }
+        });
+        $("#ChangePasswordID").submit(function (event) {
+            //alert(1);
+            var dataString;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            var action = $("#ChangePasswordID").attr("action");
+            // Setting.
+            dataString = new FormData($("#ChangePasswordID").get(0));
+            contentType = false;
+            processData = false;
+            $.ajax({
+                type: "POST",
+                url: action,
+                data: dataString,
+                dataType: "json",
+                contentType: contentType,
+                processData: processData,
+                success: function (result) {
+                    // Result.
+                    OnsuccessChangePassword(result);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    //do your own thing
+                    alert("fail");
+                }
+            });
+        });
+    });
+
+
+    var OnsuccessChangePassword = function (result) {
+        var ret = JSON.parse(result);
+        if (ret.stat == "1") {
+            // Setting.
+            $("#txtPass").attr('disabled', 'disabled');
+            $("#enPass").show();
+            $("#svPass").addClass("hidden");
+            $("#np").slideUp();
+            $("#rp").slideUp();
+            $('#ChangePasswordID').get(0).reset();
+            alert(ret.msg);
+            foo();
+        } else {
+            alert(ret.msg);
+        }
+
+    }
+
+    /* pwstrength-bootstrap 2015-10-27 - GPLv3 & MIT License */
+
+
+
+</script>
+
+
+<script type="text/javascript">
+            //jQuery(document).ready(function () {
+            //    "use strict";
+            //    var options = {};
+            //    options.ui = {
+            //        container: "#np",
+            //        viewports: {
+            //            progress: ".pwstrength_viewport_progress"
+            //        },
+            //        showVerdictsInsideProgressBar: true
+            //    };
+            //    options.common = {
+            //        debug: true,
+            //        onLoad: function () {
+            //            $('#messages').text('Start Typing Password');
+            //        }
+            //    };
+            //    $('#txtNewPass').pwstrength(options);
+            //});
+</script>
+
+
+
+<div class="hidden">
+    <h4>AccountDetails</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Login)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Login)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Password)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Password)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RememberMe)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RememberMe)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { /* id = Model.PrimaryKey */ }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>

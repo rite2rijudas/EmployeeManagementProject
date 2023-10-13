@@ -1,0 +1,582 @@
+﻿@model EMPLOYEE_MANAGEMENT.Models.AccountDetails
+@{
+    ViewBag.Title = "Log in";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/jquery")
+
+    <meta name="viewport" content="width=device-width" />
+    <title> Login</title>
+    <script type="text/javascript">
+       
+        msg = " |Employee Management Software . . . " + msg; position = 0;
+        function scrolltitle() {
+            document.title = msg.substring(position, msg.length) + msg.substring(0, position); position++;
+            if (position > msg.length) position = 0
+            window.setTimeout("scrolltitle()", 170);
+        }
+        scrolltitle();
+
+    </script>
+
+</head>
+
+
+
+<body class="hold-transition login-page">
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#tblogin").keypress(function (e) {
+                if (e.which != 8 && e.which != 0 && (e.which < 48 || e.which > 57)) {
+                    return false;
+                }
+            });
+        });
+    </script>
+    @using (Html.BeginForm("Login", "Login", FormMethod.Post))
+    {
+        <div class="login-box" id="login">
+            <div class="card card-outline card-primary">
+                <div class="card-header text-center">
+                    <a href="#" class="h1">
+                    </a>
+                </div>
+                <div class="card-body">
+                    <p class="login-box-msg">Sign in to start your session</p>
+
+                    <form action="#">
+                        <div class="input-group mb-3">
+                            @Html.TextBoxFor(model => model.Login, new { @type = "tel", @class = "form-control form-control-sm number", @placeholder = "Employee Code" })
+                            <div class="input-group-append">
+                                <div class="input-group-text">
+                                    <span class="fas fa-user-secret"></span>
+                                </div>
+                            </div>
+
+                            @Html.ValidationMessageFor(model => model.Login, "", new { @class = "text-danger" })
+                        </div>
+                        <div class="input-group mb-3">
+                            @Html.TextBoxFor(model => model.Password, new { @type = "password", @class = "form-control form-control-sm", @placeholder = "Password",@id="emppassword" })
+                            <div class="input-group-append">
+                                <div class="input-group-text">
+                                    <span class="fa fa-eye-slash passeye" onclick="ShowHidePassword(this,'emp')"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="input-group mb-3">
+                          
+
+                            @Html.DropDownListFor(model => model.FYSessionCode, (IEnumerable<SelectListItem>)ViewBag.FYList, new { @class = "form-control form-control-sm select2", @required = true })
+                           
+                        </div>
+                        <div class="row">
+                            <div class="col-8">
+                                <div class="icheck-primary">
+                                    <label for="remember">
+                                        <a href="#" onclick="initiateForgotPass()">Forgot Password ?</a>
+                                    </label>
+                                    <br />
+                                    <small>Version 1.0</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <button type="submit" name="Submit" value="Login" class="btn btn-primary btn-block  btn-sm">Sign In</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="login-box" id="fcont" style="display:none">
+            <div class="card card-outline card-primary">
+                <div class="card-header text-center">
+                    <a href="#" class="h1">
+                    </a>
+                </div>
+                <div class="card-body">
+                    <p class="login-box-msg">Enter Employee Code to Proceed</p>
+
+                    <form action="#">
+                        <div class="input-group mb-3">
+                            <input type="tel" class="form-control form-control-sm" placeholder="Employee Code" id="empcodeforotp">
+                            <div class="input-group-append">
+                                <div class="input-group-text">
+                                    <span class="fas fa-user-secret"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-7">
+                                <div class="icheck-primary">
+
+                                    <label for="remember">
+                                        <a href="#" onclick="backtoLogin()">Back to Login</a>
+                                    </label>
+                                    <br />
+                                    <small>Version 1.0</small>
+                                </div>
+                            </div>
+                            <div class="col-5">
+                                <button type="button" class="btn btn-primary btn-block btn-sm" onclick="ForgetPassword()">Proceed</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="login-box" id="fotp" style="display:none">
+            <div class="card card-outline card-primary">
+                <div class="card-header text-center">
+                    <a href="#" class="h1">
+                    </a>
+                </div>
+                <div class="card-body">
+                    <p class="login-box-msg" id="otpentermsg">Please enter OTP</p>
+                    <form action="#">
+                        <div class="input-group mb-3">
+                            <input id="digit1" type="tel" class="form-control text-center col-sm-3 otp" maxlength="1">
+                            <input id="digit2" type="tel" class="form-control text-center col-sm-3 otp" maxlength="1">
+                            <input id="digit3" type="tel" class="form-control text-center col-sm-3 otp" maxlength="1">
+                            <input id="digit4" type="tel" class="form-control text-center col-sm-3 otp" maxlength="1">
+
+                        </div>
+                        <div class="row">
+                            <div class="col-7">
+                                <div class="icheck-primary">
+
+                                    <label for="remember">
+                                        <a href="#" onclick="backtoLogin()">Back to Login</a>
+                                    </label>
+                                    <br />
+                                    <small>Version 1.0</small>
+                                </div>
+                            </div>
+                            <div class="col-5">
+                                <button type="button" class="btn btn-primary btn-block btn-sm" onclick="Verify()">Verify Now</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="login-box" id="setPass" style="display:none">
+            <div class="card card-outline card-primary">
+                <div class="card-header text-center">
+                    <a href="#" class="h1">
+                    </a>
+                </div>
+                <div class="card-body">
+                    <p class="login-box-msg">Please Enter New Password to Proceed   </p>
+
+                    <form action="#">
+                        <div class="input-group mb-3">
+                            <input type="password" class="form-control pr-password" placeholder="New Password" id="newpassword">
+                            <div class="input-group-append">
+                                <div class="input-group-text">
+                                    <span  class="fa fa-eye-slash passeye" onclick="ShowHidePassword(this,'resetnew')"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="input-group mb-3">
+                            <input type="password" class="form-control " placeholder="Retype Password" id="retypepassword">
+                            <div class="input-group-append">
+                                <div class="input-group-text">
+                                    <span  class="fa fa-eye-slash passeye" onclick="ShowHidePassword(this,'resetconfirm')"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-8">
+                                <div class="icheck-primary">
+                                    <label for="remember">
+                                        <a href="#" onclick="backtoLogin()">Back to Login</a>
+                                    </label>
+                                    <br />
+                                    <small>Version 1.0</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <button type="button" class="btn btn-primary btn-block  btn-sm" onclick="UpdatePassword()">Set Password</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div style="position:absolute;width:100%; bottom:10px; left:10px">
+             <a href="https://cludotechnology.com" style="color:#ffffff !important" target="_blank"></a>
+        </div>
+    }
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script src="~/Content/resources/jquery/jquery.passwordRequirements.js"></script>
+    <script type="text/javascript">
+         if (@Html.Raw(Json.Encode(TempData["ValidationMessage"]))!= null)
+       {
+
+            swal({
+                title: "Error!",
+                text: @Html.Raw(Json.Encode(TempData["ValidationMessage"])),
+                icon: "error",
+            });
+
+       }
+         if (@Html.Raw(Json.Encode(TempData["passwordValidationmessage"]))!= null)
+       {
+
+            swal({
+                title: "Error!",
+                text: @Html.Raw(Json.Encode(TempData["passwordValidationmessage"])),
+                icon: "error",
+            });
+
+       }
+         if (@Html.Raw(Json.Encode(TempData["passwordValidationsuccessmessage"]))!= null)
+         {
+
+            swal({
+                title: @Html.Raw(Json.Encode(TempData["passwordValidationsuccessmessage"])),
+
+                icon: "success",
+            });
+
+         }
+        function initiateForgotPass() {
+            $("#login").hide();
+            $("#fcont").show();
+            $("#setPass").hide();
+            $("#fotp").hide();
+
+            $("#empcodeforotp").val("");
+
+
+        }
+        function backtoLogin() {
+            $("#login").show();
+            $("#fcont").hide();
+            $("#fotp").hide();
+            $("#setPass").hide();
+        }
+        function otpVerify() {
+            $("#login").hide();
+            $("#fcont").hide();
+            $("#fotp").show();
+            $("#fotp").find('input')[0].focus();
+            $("#setPass").hide();
+        }
+        function setPass() {
+            $("#login").hide();
+            $("#fcont").hide();
+            $("#fotp").hide();
+            $("#setPass").show();
+        }
+        $(function () {
+            var charLimit = 1;
+            $(".otp").keydown(function (e) {
+
+
+
+                var keys = [8, 9, /*16, 17, 18,*/ 19, 20, 27, 33, 34, 35, 36, 37, 38, 39, 40,48, 45, 46, 144, 145];
+                if (e.which == 8 && this.value.length == 0) {
+                    $(this).prev('.otp').focus();
+                } else if ($.inArray(e.which, keys) >= 0) {
+                    return true;
+                } else if (this.value.length >= charLimit) {
+                    $(this).next('.otp').focus();
+                    return false;
+                } else if (e.shiftKey || e.which < 48 || e.which >= 58) {
+                    return false;
+                }
+            }).keyup(function () {
+                if (this.value.length >= charLimit) {
+                    $(this).next('.otp').focus();
+                    return false;
+                }
+            });
+        });
+        $(function () {
+            $('.select2').select2();
+
+
+
+
+        });
+
+        $(document).ready(function () {
+            $('.pr-password').passwordRequirements({});
+        }); 
+    </script>
+    <script type="text/javascript">
+    //08-08-2022
+         function foo() {
+            var url = '@Url.Action("LogOut", "Login")';
+            window.location.href = url
+         }
+
+        var OTP = "";
+        var EMPCODE = "";
+
+        function ForgetPassword() {
+            var empcode = $("#empcodeforotp").val();
+           // swal(empcode);
+            if (empcode != "") {
+
+                $.ajax({
+
+                    url: '@Url.Action("EmpCodeValidateForForgetpassword", "Login")', //
+                    dataType: "json",
+                    data: JSON.stringify({ EmpCode: empcode }),
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8",
+                    success: function (result) {
+
+
+
+                        var response = JSON.parse(result);
+
+                        if (response["stat"] == "1") {
+
+                            EMPCODE = empcode;
+                            if (response["DEVELOPER MODE"] != "") {
+                                if (response["DEVELOPER MODE"] == "YES") {
+                                    OTP = "1234";
+                                    SendOtp(empcode, OTP, response["DEVELOPER MODE"], response["EMAIL"]);
+                                } else if (response["DEVELOPER MODE"] == "NO") {
+                                    var randomnumber = Math.floor(1000 + Math.random() * 8999);
+                                    OTP = randomnumber;
+
+                                    SendOtp(empcode, OTP, response["DEVELOPER MODE"], response["EMAIL"]);
+                                }
+                            }
+
+
+
+
+                        } else if (response["stat"] == "0") {
+                            if (response["msg"] != "") {
+                                swal(response["msg"]).then((value) => { foo(); });
+                            } else {
+                                foo();
+                            }
+
+                        }
+
+                    },
+                    error: function (xhr) {
+                        //swal("error");
+                    }
+                });
+            } else {
+                swal("Please enter login id");
+            }
+
+
+
+        }
+
+        function SendOtp(empcode, otp, developermode, email) {
+            if (developermode == "YES") {
+                OTP = otp;
+                swal("OTP Successfully Sent to your Registered email id - <b>" + email+"</b>");
+                $("#otpentermsg").text("Please enter the OTP sent to your email id - <b>" + email + "</b>");
+
+                $("#digit1").val("");
+                $("#digit2").val("");
+                $("#digit3").val("");
+                $("#digit4").val("");
+                otpVerify();
+            } else if (developermode == "NO") {
+
+                EMPCODE = empcode;
+                OTP = otp;
+
+                $.ajax({
+
+                    url: '@Url.Action("SendOtpToUser", "Login")', //
+                    dataType: "json",
+                    data: JSON.stringify({ BPSCL_CODE: empcode, Otp: otp }),
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8",
+                    success: function (result) {
+
+
+
+                        var response = JSON.parse(result);
+
+                        if (response["stat"] == "1") {
+
+                            swal("OTP Successfully Sent to your Registered email id - " + email);
+                            $("#otpentermsg").text("Please enter the OTP sent to your email id - " + email);
+                            $("#digit1").val("");
+                            $("#digit2").val("");
+                            $("#digit3").val("");
+                            $("#digit4").val("");
+                            otpVerify();
+
+                        } else if (response["stat"] == "0") {
+                            if (response["msg"] != "") {
+                                swal(response["msg"]).then((value) => { foo(); });;
+                            } else {
+                                foo();
+                            }
+
+                        }
+
+                    },
+                    error: function (xhr) {
+                        //swal("error");
+                    }
+                });
+            }
+        }
+
+        function Verify() {
+
+            var otp1 = $("#digit1").val();
+            var otp2 = $("#digit2").val();
+            var otp3 = $("#digit3").val();
+            var otp4 = $("#digit4").val();
+
+
+            if (otp1!="" && otp2!="" && otp3!="" && otp4!="" ) {
+
+                if ( VerifyOtp(OTP, (otp1 + otp2 + otp3 + otp4))) {
+                    setPass();
+                } else {
+                    swal("invalid otp");
+                    otpVerify();
+                }
+            } else {
+                swal("please enter otp properly");
+                otpVerify();
+            }
+
+        }
+
+        function VerifyOtp(sentOtp, EnteredOtp) {
+            var flag = true;
+
+            if (sentOtp != "" && EnteredOtp != "") {
+                if (sentOtp == EnteredOtp) {
+                    flag = true;
+                } else {
+                    flag = false;
+                }
+            } else {
+                flag = false;
+            }
+            return flag;
+        }
+
+        function UpdatePassword() {
+
+            var newpassword = $("#newpassword").val();
+            var retypepassword = $("#retypepassword").val();
+
+            if (newpassword != "" && retypepassword != "") {
+
+                if (VerifyPasswordStrength()) {
+                  if (newpassword == retypepassword) {
+                    $.ajax({
+
+                        url: '@Url.Action("UpdatePassword", "Login")', //
+                        dataType: "json",
+                        data: JSON.stringify({ BPSCL_CODE: EMPCODE, Password: newpassword }),
+                        type: "POST",
+                        contentType: "application/json; charset=utf-8",
+                        success: function (result) {
+
+
+
+                            var response = JSON.parse(result);
+
+                            if (response["stat"] == "1") {
+
+                                if (response["msg"] != "") {
+                                    swal({ title: response["msg"], icon: "success" }).then((value) => { foo(); });
+                                } else {
+
+                                    foo();
+                                }
+                            } else if (response["stat"] == "0") {
+
+                                if (response["msg"] != "") {
+                                    swal({ title: response["msg"], icon: "error" });
+                                }
+                            }
+
+                        },
+                        error: function (xhr) {
+                            //swal("error");
+                        }
+                    });
+                  } else
+                  {
+                    swal({ title: "passwords not matched", icon: "warning" });
+                    setPass();
+                  }
+                }
+
+            } else {
+                swal({ title: "Please enter password fields ", icon: "warning" });
+                setPass();
+            }
+
+
+        }
+
+        function VerifyPasswordStrength() {
+
+            let flag = true;
+
+            let newpassword = $("#newpassword").val().trim().replace(" ","");
+
+            const passwordformat = /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])[a-zA-Z\d!@@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}/g;
+           
+            if (!passwordformat.test(newpassword)) {
+                flag = false;
+            }
+
+
+            return flag;
+        }
+
+
+        function ShowHidePassword(ref, fieldname) {
+            $(ref).toggleClass("fa-eye fa-eye-slash");
+
+            let data;
+
+            if (fieldname == "emp") {
+                data = $("#emppassword");
+            } else if (fieldname == "resetnew") {
+
+                data = $("#newpassword");
+            } else if (fieldname == "resetconfirm") {
+
+                data = $("#retypepassword");
+            }
+
+            // console.log(data);
+            //console.log(data.attr("type"));
+
+
+
+
+            if (data.attr("type") === "password") {
+                data.attr("type", "text");
+            } else if (data.attr("type") === "text") {
+                data.attr("type", "password");
+            }
+
+
+        }
+    </script>
+</body>
+
+</html>

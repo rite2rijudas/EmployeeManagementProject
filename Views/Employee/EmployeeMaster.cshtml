@@ -1,0 +1,773 @@
+﻿@model EMPLOYEE_MANAGEMENT.Models.EmployeeDetails
+@using EMPLOYEE_MANAGEMENT.Models
+@{
+    ViewBag.Title = "EmployeeMaster";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+<script type="text/javascript">
+    var year = new Date().getFullYear() - 18;
+    var RealEmpcode = "";
+
+    var HasHodFlag = "0";
+    var UserGroupTblValues = [];
+
+    $(document).ready(function () {
+        $("#dob").datepicker({
+            format: 'dd/mm/yyyy',
+            endDate: new Date(year, 1, 1),
+            autoclose: true,
+        });
+
+         RealEmpcode=@Html.Raw(Json.Encode(Model.RealEmpCode));
+
+        if (RealEmpcode != null && RealEmpcode != "") {
+            RealEmpcode=@Html.Raw(Json.Encode(Model.RealEmpCode));
+        } else {
+            RealEmpcode = "";
+        }
+
+
+        var DeptCode = $("#department option:selected").val();
+        if (DeptCode != "") {
+            HasHodFlag = DepartmentHodBind(DeptCode);
+            if (@Html.Raw(Json.Encode(Model.AdditionalDepartment))!= null && @Html.Raw(Json.Encode(Model.AdditionalDepartment))!= "") {
+
+                var isReadyAdditionalDept = AdditionalDepartmentBind();
+
+                if (isReadyAdditionalDept) {
+                     var adddepts =@Html.Raw(Json.Encode(Model.AdditionalDepartment));
+                    var adddeptstxt =@Html.Raw(Json.Encode(Model.AdditionalDepartmentTexts));
+
+                    var arr = adddepts.split(',');
+                    var arr1 = adddeptstxt.split(',');
+                    var s2 = $("#additionaldepartment").select2({
+                        tags: true
+                    });
+
+                    for (var i = 0; i < arr.length; i++) {
+                        var option = new Option(arr1[i], arr[i], true, true);
+                        s2.append(option).trigger('change');
+                    }
+
+                    GetAdditionalDepartmentData();
+                }
+
+
+            }
+
+        }
+
+
+
+
+        BindUserData();
+        UserGroupsBind(HasHodFlag, UserGroupTblValues);
+
+
+         var errmsg = @Html.Raw(Json.Encode(TempData["errormsg"]));
+        if (errmsg != null) {
+                swal({
+                    title: errmsg,
+                    icon:"error"
+                });
+        }
+        var successmsg = @Html.Raw(Json.Encode(TempData["successmsg"]));
+        if (successmsg != null) {
+                swal({
+                    title: successmsg,
+                    icon:"success"
+                });
+        }
+
+    });
+
+    $(function () {
+        $("#additionaldepartment").change(function () {
+            GetAdditionalDepartmentData();
+
+        })
+
+        $("#department").change(function () {
+            var deptcode = $("#department option:selected").val();
+            if (deptcode == "") {
+                $("#depthod").hide();
+            } else {
+
+                HasHodFlag = DepartmentHodBind(deptcode);
+            }
+            BindUserData();
+            UserGroupsBind(HasHodFlag, UserGroupTblValues);
+        });
+
+
+        $("#empcode").change(function () {
+            let status = DuplicateValidation('EmpCode');
+            if (!status) {
+                $(this).focus();
+            }
+        });
+
+        $("#contactno").change(function () {
+            let status = DuplicateValidation('ContactNo');
+            if (!status) {
+                $(this).focus();
+            }
+        });
+
+        $("#emailid").change(function () {
+            let status = DuplicateValidation('EmailId');
+            if (!status) {
+                $(this).focus();
+            }
+
+        });
+
+
+
+        $("input").attr("autocomplete", "off");
+    });
+
+    function ValidateMobileNumber(contact) {
+        var phoneno = /^\d{10}$/;
+        if (contact.match(phoneno))
+        {
+            return true;
+        }
+        else {
+
+            return false;
+        }
+    }
+
+    function ValidateEmail(mail)
+        {
+            var mailformat = /^([\w-\.]+)@@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$/;
+            if (mail.match(mailformat))
+            {
+              return true;
+            } else {
+
+              return false;
+            }
+
+        }
+
+    function DuplicateValidation(FieldName) {
+
+
+        var data;
+        var flag = true;
+        var isvalid = false;
+
+        if (FieldName == "EmpCode") {
+            data = $("#empcode").val();
+            $("#empcode").removeClass("is-invalid is-valid");
+        } else if (FieldName == "ContactNo") {
+            data = $("#contactno").val();
+            $("#contactno").removeClass("is-invalid is-valid");
+            if (data!="") {
+                if (!ValidateMobileNumber(data)) {
+                    flag = false;
+                    //swal({
+                    //    title: "Invalid " + FieldName,
+                    //    icon: "warning"
+                    //});
+                    $("#contactno").addClass("is-invalid");
+                    return isvalid;
+                }
+            }
+
+
+        }else if (FieldName == "EmailId") {
+            data = $("#emailid").val();
+            $("#emailid").removeClass("is-invalid is-valid");
+            if (data!="") {
+                if (!ValidateEmail(data)) {
+                    flag = false;
+                    //swal({
+                    //    title: "Invalid " + FieldName,
+                    //    icon: "warning"
+                    //});
+                    $("#emailid").addClass("is-invalid");
+                    return isvalid;
+                }
+            }
+
+        }
+
+        if (flag) {
+          if (data != "") {
+
+             $.ajax({
+
+                    url: '@Url.Action("ValidateFieldValue", "Employee")',
+                     dataType: "json",
+                     data: JSON.stringify({ FieldName: FieldName, Value: data, RealEmpCode: RealEmpcode }),
+                     type: "POST",
+                     async: false,
+                    contentType: "application/json; charset=utf-8",
+                    success: function (result) {
+
+                        var response = JSON.parse(result);
+
+                        if (response["stat"] == "1") {
+
+
+                            if (FieldName == "EmpCode") {
+                                $("#empcode").addClass("is-invalid");
+                                isvalid = false;
+                            } else if (FieldName == "ContactNo") {
+                                $("#contactno").addClass("is-invalid");
+                                isvalid = false;
+                            } else if (FieldName == "EmailId") {
+                                $("#emailid").addClass("is-invalid");
+                                isvalid = false;
+                            }
+
+                        } else if (response["stat"] == "0") {
+
+                            if (FieldName == "EmpCode") {
+                                $("#empcode").addClass("is-valid");
+                                isvalid = true;
+
+                            } else if (FieldName == "ContactNo") {
+                                $("#contactno").addClass("is-valid");
+                                isvalid = true;
+
+                            } else if (FieldName == "EmailId") {
+                                $("#emailid").addClass("is-valid");
+                                isvalid = true;
+
+                            }
+
+                        } else if (response["stat"] == "2") {
+                            if (response["msg"] != "") {
+                                swal(response["msg"]);
+                                isvalid = false;
+                                return false;
+                            }
+                        }
+
+                    },
+                    error: function (xhr) {
+                        //swal("error");
+                    }
+             });
+
+          } else {
+            //swal({
+            //    title: "Please Enter " + FieldName,
+            //    icon:"warning"
+            //});
+            if (FieldName == "EmpCode") {
+                $("#empcode").addClass("is-invalid");
+                return isvalid;
+            } else if (FieldName == "ContactNo") {
+                $("#contactno").addClass("is-invalid");
+                return isvalid;
+            } else if (FieldName == "EmailId") {
+                $("#emailid").addClass("is-invalid");
+                return isvalid;
+            }
+          }
+        }
+
+        return isvalid;
+
+    }
+
+    function AdditionalDepartmentBind() {
+        var flag = false;
+        var deptcode = $("#department option:selected").val();
+        var deptname = $("#department option:selected").text();
+        //alert(deptname + "-" + deptcode);
+
+        if (deptcode != "") {
+
+            $.ajax({
+
+                url: '@Url.Action("BindAdditionalDepartment", "Employee")',
+                dataType: "json",
+                async: false,
+                data: JSON.stringify({ DeptName: deptname, DeptCode: deptcode }),
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                success: function (result) {
+
+                    $("#additionaldepartment").html("");
+                    $.each(result, function (key, value) {
+                        $("#additionaldepartment").append("<option value='" + value.Value + "'>" + value.Text + "</option>");
+                    });
+                    flag = true;
+                },
+                error: function (xhr) {
+                    //swal("error");
+                }
+            });
+        } else {
+            swal({
+                title: "Please Choose Department ",
+                icon: "warning"
+            });
+        }
+        return flag;
+    }
+
+    function ValidateFields() {
+        var flag = true;
+
+        var dept = $("#department").val();
+        var empcode = $("#empcode").val();
+        var empname = $("#empname").val();
+        var grade = $("#grade").val();
+        var dob = $("#dob").val();
+        var gender = $("#gender").val();
+        var mobileno = $("#contactno").val();
+        var email = $("#emailid").val();
+
+
+        if (dept == "") {
+            flag = false;
+            swal({
+                title: "Department is missing",
+                icon:"warning"
+            })
+            return false;
+        }
+        if (empcode == "") {
+            flag = false;
+            swal({
+                title: "EmpCode is missing",
+                icon:"warning"
+            })
+            return false;
+        }
+        if (empname == "") {
+            flag = false;
+            swal({
+                title: "Employee Name is missing",
+                icon:"warning"
+            })
+            return false;
+        }
+        if (grade == "") {
+            flag = false;
+            swal({
+                title: "Designation is missing",
+                icon:"warning"
+            })
+            return false;
+        }
+        if (dob == "") {
+            flag = false;
+            swal({
+                title: "Date of birth is missing",
+                icon:"warning"
+            })
+            return false;
+        }
+        if (gender == "") {
+            flag = false;
+            swal({
+                title: "Gender is missing",
+                icon:"warning"
+            })
+            return false;
+        }
+
+        if (mobileno == "") {
+            flag = false;
+            swal({
+                title: "Contact no is missing",
+                icon:"warning"
+            })
+            return false;
+        }
+        if (email == "") {
+            flag = false;
+            swal({
+                title: "Email id is missing",
+                icon:"warning"
+            })
+            return false;
+        }
+
+        var Isvalidempcode =  DuplicateValidation("EmpCode");
+        var Isvalidcontactno =  DuplicateValidation("ContactNo");
+        var Isvalidemail = DuplicateValidation("EmailId");
+
+        //alert(Isvalidempcode);
+
+        if (!Isvalidempcode) {
+
+
+            flag = false;
+
+            return false;
+        }
+        if (!Isvalidcontactno) {
+            flag = false;
+
+            return false;
+
+        }
+        if (!Isvalidemail) {
+            flag = false;
+
+            return false;
+        }
+
+        BindUserData();
+
+
+
+        return flag;
+
+    }
+
+    function AddUserGroup() {
+        var memofvalue = $("#usergroup option:selected").val();
+        var memoftext = $("#usergroup option:selected").text();
+        if (memofvalue != "") {
+            var RemoveBtn = '<a href="#" data-toggle="tooltip" title="Delete" onclick="removeItem(this,\'' + memofvalue + '\')"><i class="fa fa-times text-red"></i></a>';
+            $("#usergrouptbl").append("<tr><td style='display:none;'>" + memofvalue + "</td><td>" + memoftext + "</td><td>" + RemoveBtn + "</td></tr>");
+            BindUserData();
+            UserGroupsBind(HasHodFlag, UserGroupTblValues);
+
+            $("#usergroup ").val('').change();
+        }
+
+
+    }
+
+    function removeItem(ctl,mval) {
+
+
+
+        $(ctl).parents("tr").remove();
+        BindUserData();
+        UserGroupsBind(HasHodFlag, UserGroupTblValues);
+      //  console.log(UserGroupTblValues);
+    }
+
+    function BindUserData() {
+        var data = "";
+        var data1 = "";
+        UserGroupTblValues = [];
+
+
+         $("#membersoftable >tbody >tr").each(function (key, value) {
+            var row = $(this);
+            data = data + row.find("TD").eq(0).text() + ",";
+            data1 = data1 + row.find("TD").eq(1).text() + ",";
+          //  alert(row.find("TD").eq(0).text())
+            UserGroupTblValues.push(row.find("TD").eq(0).text());
+        });
+
+
+        $("#membersof").val(data);
+        $("#membersoftxt").val(data1);
+
+        //alert($("#membersof").val());
+        //alert($("#membersoftxt").val());
+    }
+
+    function DepartmentHodBind(deptcode) {
+
+        var c;
+
+        if (deptcode != "") {
+
+            $.ajax({
+
+                url: '@Url.Action("DepartmentHodBind", "Employee")',
+                dataType: "json",
+                data: JSON.stringify({ DeptCode: deptcode }),
+                type: "POST",
+                async: false,
+                contentType: "application/json; charset=utf-8",
+                success: function (result) {
+
+                    var res = JSON.parse(result);
+
+                        if (res["stat"] == "1") {
+                            $("#depthod").text(res["EMPLOYEE_NAME"]);
+                            c = "1";
+                            $("#depthod").show();
+                        } else if (res["stat"] == "0") {
+                            c = "0";
+                            $("#depthod").hide();
+                        }
+
+
+                },
+                error: function (xhr) {
+                    //swal("error");
+                }
+            });
+        } else {
+            swal({
+                title: "Please Choose Department ",
+                icon: "warning"
+            });
+        }
+        return c;
+    }
+
+    function UserGroupsBind(hodflag, usergroupvalues) {
+
+
+            $.ajax({
+
+                url: '@Url.Action("UserGroupBind", "Employee")',
+                dataType: "json",
+                data: JSON.stringify({ HodFlag: hodflag, SelectedValues: usergroupvalues }),
+                type: "POST",
+                contentType: "application/json; charset=utf-8",
+                success: function (result) {
+
+                    $("#usergroup").html("");
+                    $.each(result, function (key, value) {
+                        $("#usergroup").append("<option value='" + value.Value + "'>" + value.Text + "</option>");
+                    });
+
+                },
+                error: function (xhr) {
+                    //swal("error");
+                }
+            });
+
+
+    }
+
+    function GetAdditionalDepartmentData() {
+        var data = $("#additionaldepartment").select2('val');
+        $("#hdnadditionaldepartment").val(data);
+        var data1 = $("#additionaldepartment").select2('data');
+       // console.log(data1);
+        var txts = "";
+        for (var i = 0; i < data1.length; i++) {
+            txts = txts+ data1[i].text + ",";
+        }
+       // alert(txts);
+        $("#additionaldepartmentTexts").val(txts);
+    }
+
+</script>
+
+
+
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>Employee</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="../Dashboard/dashboard">Dashboard  </a></li>
+                        <li class="breadcrumb-item active">Employee Master</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="content">
+        <div class="col-md-6">
+            @using (Html.BeginForm("EmployeeMaster", "Employee", FormMethod.Post))
+            {
+                @Html.HiddenFor(model => model.RealEmpCode, new { @id = "realempcode" })
+                @Html.HiddenFor(model => model.ProfileImageName)
+                @Html.HiddenFor(model => model.SignatureName)
+                <div class="card card-secondary">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-cogs text-teal"></i> Employee Master
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label>Department *<span id="depthod" style="display:none;" class="text-danger"></span></label>
+                                @Html.DropDownListFor(model => model.Department, (List<SelectListItem>)ViewBag.Departments, "Choose Department", new { @id = "department", @class = "form-control form-control-sm select2", @required = true, @onchange = "AdditionalDepartmentBind()" })
+                                @*<select class="form-control form-control-sm select2" required>
+                                        <option value="0">Choose Department</option>
+                                        <option>Dept 1</option>
+                                        <option>Dept 2</option>
+                                    </select>*@
+                            </div>
+                            <div class="col-md-6">
+                                <label>EMP Code *</label>
+                                <div class="input-group input-group-sm">
+
+                                    @Html.TextBoxFor(model => model.EmpCode, new { @id = "empcode", @type = "tel", @required = true, @class = "form-control  form-control-sm number", @placeholder = "EmpCode", @onchange = "" })
+                                    <div class="input-group-append">
+                                        <div class="input-group-text"><i class="fa fa-user-secret"></i></div>
+                                    </div>
+                                </div>
+                                @*<input type="text" class="form-control form-control-sm is-valid" />*@
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label>Employee Name *</label>
+
+                                <div class="input-group input-group-sm">
+                                    @Html.TextBoxFor(model => model.EmployeeName, new { @id = "empname", @type = "text", @required = true, @class = "form-control  form-control-sm ", @placeholder = "Jhon Doe" })
+                                    <div class="input-group-append">
+                                        <div class="input-group-text"><i class="fa fa-user-ninja"></i></div>
+                                    </div>
+                                    @*<input type="text" class="form-control form-control-sm" placeholder="Jhon Doe" />*@
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label>Grade *</label>
+                                @Html.DropDownListFor(model => model.Grade, (List<SelectListItem>)ViewBag.Grades, "Choose Grade", new { @id = "grade", @class = "form-control form-control-sm select2", @required = true })
+                                @*<select class="form-control form-control-sm select2" required>
+                                    <option value="0">Choose Grade</option>
+                                     </select>*@
+                            </div>
+                            <div class="col-md-6">
+                                <label>Designation</label>
+                                @Html.DropDownListFor(model => model.Designation, (List<SelectListItem>)ViewBag.Designations, "Choose Designation", new { @class = "form-control form-control-sm select2" })
+                                @*<select class="form-control form-control-sm select2" required>
+                                    <option value="0">Choose Designation</option>
+                                    </select>*@
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label>Date of Birth *</label>
+                                <div class="input-group input-group-sm ">
+                                    @*<input type="text" class="form-control datepicker" placeholder="dd-mm-yyyy">*@
+                                    @Html.TextBoxFor(model => model.DOB, new { @id = "dob", @class = "form-control ", @placeholder = "dd-mm-yyyy", @readonly = true })
+                                    <div class="input-group-append">
+                                        <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label>Gender *</label>
+                                @Html.DropDownListFor(model => model.Gender, new List<SelectListItem> { new SelectListItem { Text = "Male", Value = "MALE" }, new SelectListItem { Text = "Female", Value = "Female" } }, "Choose Gender", new { @id = "gender", @class = "form-control form-control-sm select2", @required = true })
+                                @*<select class="form-control form-control-sm select2">
+                                        <option>Male</option>
+                                        <option>Female</option>
+                                        <option>Transgender</option>
+                                    </select>*@
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label>Department with Additional Incharge  </label>
+                                @Html.DropDownListFor(model => model.AdditionalDepartment, (List<SelectListItem>)ViewBag.Departments, "Choose Department", new { @id = "additionaldepartment", @class = "form-control form-control-sm select2", @multiple = "" })
+
+                                <!--<select class="form-control form-control-sm select2" id="additionaldepartment" multiple="">-->
+                                @*<option>Dept 1</option>
+                                    <option>Dept 2</option>*@
+                                <!--</select>-->
+
+                                @Html.HiddenFor(model => model.HdnAdditionalDepartment, new { @id = "hdnadditionaldepartment" })
+                                @Html.HiddenFor(model => model.AdditionalDepartmentTexts, new { @id = "additionaldepartmentTexts" })
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label>Mobile No *</label>
+                                @* <input type="text" maxlength="10" required class="form-control is-valid form-control-sm number" placeholder="Mobile Number">*@
+                                @Html.TextBoxFor(model => model.ContactNo, new { @id = "contactno", @type = "tel", @maxlength = "10", @required = true, @class = "form-control  form-control-sm number", @placeholder = "Mobile Number", @onchange = "" })
+                            </div>
+                            <div class="col-md-8">
+                                <label>Email Address *</label>
+                                @*<input type="email" required class="form-control is-invalid form-control-sm" placeholder="Email Address">*@
+                                @Html.TextBoxFor(model => model.EmailAddress, new { @id = "emailid", @type = "email", @required = true, @class = "form-control  form-control-sm ", @placeholder = "Email Address", @onchange = "" })
+                            </div>
+                        </div>
+
+                        <div class="row mt-2">
+                            <div class="col-md-11">
+                                <label class="text-green">User Groups</label>
+                                <select id="usergroup" class="form-control form-control-sm select2">
+                                    <option value="0">Choose Groups</option>
+                                </select>
+                                @*  @Html.DropDownListFor(model => model.UserGroups, (List<SelectListItem>)ViewBag.UserGroups, "Choose Groups", new { @id = "usergroup", @class = "form-control form-control-sm select2" })*@
+                                @*<select id="membersof" class="form-control form-control-sm select2">
+                                        <option>Indenter</option>
+                                        <option>Planning IC</option>
+                                        <option>Head of the Department</option>
+                                        <option>Planning HOD</option>
+                                        <option>DSC</option>
+                                    </select>*@
+                            </div>
+                            <div class="col-md-1">
+                                <label>.</label><br />
+                                <button type="button" class="btn btn-sm btn-dark" onclick="AddUserGroup()">
+                                    <i class="fa fa-save"></i>
+                                </button>
+                            </div>
+
+                        </div>
+                        @Html.HiddenFor(model => model.MembersOf, new { @id = "membersof" })
+                        @Html.HiddenFor(model => model.MembersOfText, new { @id = "membersoftxt" })
+                        <div class="row mt-2">
+                            <div class="col-md-12">
+                                <table id="membersoftable" class="table table-sm">
+                                    <tbody id="usergrouptbl">
+                                        @if (!string.IsNullOrEmpty(Model.MembersOf))
+                                        {
+                                            string[] arr = Model.MembersOf.Split(',');
+                                            string[] arr1 = Model.MembersOfText.Split(',');
+
+                                            for (int j = 0; j < arr.Length; j++)
+                                            {
+                                                if (!string.IsNullOrEmpty(arr[j]))
+                                                {
+                                                    <tr>
+                                                        <td style="display:none;">@arr[j]</td>
+                                                        <td>@arr1[j]</td>
+                                                        <td>
+                                                            <a href="#" data-toggle="tooltip" title="Delete" onclick="removeItem(this)">
+                                                                <i class="fa fa-times text-red"></i>
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                }
+
+                                            }
+
+                                        }
+
+                                        @* <tr>
+                                                <td>Planning I/C</td>
+                                                <td>
+                                                    <a href="#" data-toggle="tooltip" title="Delete">
+                                                        <i class="fa fa-times text-red"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>*@
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-xs btn-success" name="Submit" value="Save" id="" onclick="return ValidateFields()" type="submit">
+                            <i class="fa fa-save"></i> Save Employee Details
+                        </button>
+                        <a href='@Url.Action("EmployeeView","Employee")' class="btn btn-secondary btn-xs " type="submit">
+                            <i class="fa fa-search"></i> View Old Records
+                        </a>
+                    </div>
+
+                </div>
+            }
+        </div>
+    </section>
+</div>
+

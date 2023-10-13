@@ -1,0 +1,105 @@
+﻿<script type="text/javascript">
+        function foo() {
+            var url = '@Url.Action("LogOut", "Login")';
+            window.location.href = url
+    }
+
+     var msg = '@Html.Raw(TempData["permissionMsg"])';
+        if (msg != "") {
+            alert(msg);
+        }
+</script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script type="text/javascript">
+
+    
+
+    $(document).ready(function () {
+        var ret =@Html.Raw(@ViewBag.menus);
+    
+        if (ret["stat"] == "1") {
+            
+            BindProfileInfo(ret);
+        } else if (ret["stat"] == "0") {
+           foo();
+        }
+   
+    })
+
+    function BindProfileInfo(ret) {
+        var infocontent = [];
+        infocontent.push("<a href='#' id='userName' class='d-block'>" + ret["EmployeeName"] + "</a>")
+        infocontent.push(" <a href='#' id='userName' class='d-block' id='userDesignation'><small>" + ret["DesgName"] + "</small></a>")
+
+        $("#userinfo").html("").html(infocontent.join(''));
+
+        var domain = document.location.origin;
+        $("#userimage").html("").html("<img src='" + domain+ret["EmployeeImage"]+"' class='img-circle elevation-2' alt='User Image'>");
+
+
+    }
+
+</script>
+<aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <a href="#" class="brand-link">
+    </a>
+    <div class="sidebar sidebar-img">
+        <div class="user-panel mt-4 pb-3 mb-5 d-flex">
+            <div class="image" id="userimage">
+            </div>
+            <div id="userinfo" class="info">
+              
+            </div>
+        </div>
+
+        <nav class="mt-2" style="padding-top:13px;">
+            <ul class="nav nav-pills nav-sidebar flex-column nav-compact nav-child-indent" data-widget="treeview" role="menu" data-accordion="false">
+                <li class="nav-item">
+                    <a href="@Url.Action("EmployeeMaster", "Employee")" class="nav-link">
+                    <i class="nav-icon fas fa-tachometer-alt"></i>
+                    <p>
+                        Employee Master
+                        <span class="right badge badge-danger">New</span>
+                    </p>
+                    </a>
+                </li> <li class="nav-item">
+                    <a href="@Url.Action("EmployeeView", "Employee")" class="nav-link">
+                        <i class="nav-icon fas fa-tachometer-alt"></i>
+                        <p>
+                            Employee View
+                            <span class="right badge badge-danger">New</span>
+                        </p>
+                    </a>
+                </li> <li class="nav-item">
+                    <a href="@Url.Action("MasterEntry", "MasterEntry")" class="nav-link">
+                        <i class="nav-icon fas fa-tachometer-alt"></i>
+                        <p>
+                            Master Entry
+                            <span class="right badge badge-danger">New</span>
+                        </p>
+                    </a>
+                </li> 
+                <li class="nav-item">
+                    <a href="@Url.Action("MasterEntryView", "MasterEntry")" class="nav-link">
+                        <i class="nav-icon fas fa-tachometer-alt"></i>
+                        <p>
+                            Master Entry View
+                            <span class="right badge badge-danger">New</span>
+                        </p>
+                    </a>
+                </li>
+              
+            </ul>
+        </nav>
+    </div>
+    <div class="logout-section">
+        <ul>
+            <li>
+                <a href="../Employee/EmployeeProfile"><i class="fa fa-user-alt"></i>&nbsp;Profile</a>
+            </li>
+            <li>
+                <a href="../Login"><i class="fa fa-power-off"></i>&nbsp;Logout</a>
+            </li>
+        </ul>
+    </div>
+</aside>

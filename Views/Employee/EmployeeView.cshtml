@@ -1,0 +1,264 @@
+﻿@model EMPLOYEE_MANAGEMENT.Models.EmployeeDetails
+@{
+    ViewBag.Title = "EmployeeView";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var errmsg = @Html.Raw(Json.Encode(TempData["errormsg"]));
+        if (errmsg != null) {
+            swal({
+                title: errmsg,
+                icon: "error"
+            });
+        }
+        var successmsg = @Html.Raw(Json.Encode(TempData["successmsg"]));
+        if (successmsg != null) {
+            swal({
+                title: successmsg,
+                icon: "success"
+            });
+        }
+    });
+
+
+    function BlockModal(empcode) {
+        $("#bempcode").val(empcode);
+        $("#modalpopupforblock").modal('show');
+    }
+    function BlockEmployee() {
+        if ($("#rmkblock").val() != "") {
+            return true;
+        } else {
+            swal({ title: "Please enter remarks", icon: "warning" });
+            return false;
+        }
+    }
+
+    function PasswordModal(empcode) {
+        $("#pempcode").val(empcode);
+        $("#modalpopupforpasswordreset").modal('show');
+    }
+    function PasswordChange() {
+        if ($("#rmkownpassword").val() != "") {
+            if ($("#rmkpassword").val() != "") {
+                return true;
+            } else {
+                swal({ title: "Please enter new password for employee", icon: "warning" });
+                return false;
+            }
+            
+        } else {
+            swal({ title: "Please enter Your Own password", icon: "warning" });
+            return false;
+        }
+    }
+</script>
+
+
+@*modal start*@
+<div id="modalpopupforblock" class="modal fade " role="dialog" aria-labelledby="myLargeModalLabel" tabindex="-1">
+    <div class="modal-dialog modal-m">
+        <div class="modal-content box box-success box-solid">
+            <div class="modal-header text-center box-header with-border">
+                <h3 class="modal-title"> Block Employee  </h3>
+            </div>
+            <div class="modal-body box-body" id="desmodalbody">
+
+                @using (Html.BeginForm("BlockEmployee", "Employee", FormMethod.Post))
+                {
+                    <div class="row form-group">
+                        <div class="col-md-12">
+
+                            @Html.HiddenFor(model => model.EmpCode, new {@id="bempcode"})
+                            @Html.TextAreaFor(model => model.Reason, new { @placeholder = "Enter Your Remarks", @id = "rmkblock", @class = "form-control" })
+                        </div>
+                    </div>
+                    <div class="row form-group">
+
+                        <input type="submit" value="Block" class="btn btn-sm btn-danger " onclick="return BlockEmployee()" />
+                    </div>
+                }
+
+
+
+            </div>
+        </div>
+    </div>
+</div>
+@*modal end*@
+
+@*modal start*@
+<div id="modalpopupforpasswordreset" class="modal fade " role="dialog" aria-labelledby="myLargeModalLabel" tabindex="-1">
+    <div class="modal-dialog modal-m">
+        <div class="modal-content box box-success box-solid">
+            <div class="modal-header text-center box-header with-border">
+                <h3 class="modal-title"> Change Password  </h3>
+            </div>
+            <div class="modal-body box-body" id="desmodalbody">
+
+                @using (Html.BeginForm("ChangeEmployeePassword", "Employee", FormMethod.Post))
+                {
+                            @Html.HiddenFor(model => model.EmpCode, new {@id="pempcode"})
+                    <div class="row form-group">
+                        <div class="col-md-12">
+                            <label></label>
+                            @Html.TextBoxFor(model => model.OwnPassword, new { @type="password",@placeholder = "Enter Your Password", @id = "rmkownpassword", @class = " form-control" })
+                        </div>
+                        <div class="col-md-12">
+                            @Html.TextBoxFor(model => model.EmployeePassword, new { @type = "password", @placeholder = "Enter User New Password", @id = "rmkpassword", @class = " form-control" })
+
+                        </div>
+                    </div>
+                    <div class="row ">
+
+                        <input type="submit" value="Change" class="btn btn-sm btn-warning " onclick="return PasswordChange()" />
+                    </div>
+                }
+
+
+
+            </div>
+        </div>
+    </div>
+</div>
+@*modal end*@
+
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>Employee View </h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="../Dashboard/dashboard">Dashboard  </a></li>
+                        <li class="breadcrumb-item active">Employee View</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="content">
+        <div class="col-md-12">
+            <div class="card card-secondary">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-search text-green"></i> Employee List
+                    </h3>
+                </div>
+                <div class="card-body">
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <table class="table table-bordered table-striped dtr-inline ds">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            Sl.No
+                                        </th>
+                                        <th>
+                                            Employee Name
+                                        </th>
+                                        <th>
+                                            Employee Code
+                                        </th>
+                                        <th>
+                                            Date of Birth
+                                        </th>
+                                        <th>
+                                            Department
+                                        </th>
+                                        <th>
+                                            Additional Department
+                                        </th>
+                                        <th>
+                                            Designation
+                                        </th>
+                                        <th>
+                                            Contact Number
+                                        </th>
+                                        <th>
+                                            Email Address
+                                        </th>
+                                        <th>
+                                            User Group
+                                        </th>
+                                        <th>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                   
+
+                                    @if (Model.list1 != null && Model.list1.Count > 0)
+                                    {
+                                        int i = 0;
+                                        foreach (var item in Model.list1)
+                                        {
+                                            i = i + 1;
+                                            <tr>
+                                                <td>@i</td>
+                                                <td>@item.EmployeeName</td>
+                                                <td>@item.EmpCode</td>
+                                                <td>@item.DOB</td>
+                                                <td>@item.Department</td>
+                                                <td>
+                                                    @if (!string.IsNullOrEmpty(item.AdditionalDepartment))
+                                                    {
+                                                        string[] arr = item.AdditionalDepartment.Split(',');
+
+                                                        for (int j = 0; j < arr.Length; j++)
+                                                        {
+                                                            <span class="badge badge-danger" style="font-size:13px">@arr[j]</span>
+                                                        }
+                                                    }
+                                                </td>
+                                                <td>@item.Designation</td>
+                                                <td>@item.ContactNo</td>
+                                                <td>@item.EmailAddress</td>
+                                                <td>@item.MembersOf</td>
+                                                <td>
+                                                    <div class="btn-group dropleft">
+                                                        <button type="button" class="btn btn-info btn-sm">Action</button>
+                                                        <button type="button" class="btn btn-info btn-sm dropdown-toggle dropdown-icon" data-toggle="dropdown">
+                                                            <span class="sr-only">Toggle Dropdown</span>
+                                                        </button>
+                                                        <div class="dropdown-menu" role="menu">
+                                                            <a class="dropdown-item" href="@Url.Action("EmployeeEdit", "Employee", new {id=item.RealEmpCode})"><i class="fa fa-user-edit"></i> Edit Record</a>
+                                                            <a class="dropdown-item" href="#" onclick="BlockModal('@item.RealEmpCode')"><i class="fa fa-user-alt-slash"></i> Block Employee</a>
+                                                            <a class="dropdown-item" href="#" ><i class="fa fa-rupee-sign"></i>&nbsp;&nbsp;&nbsp;&nbsp;Payroll Configuration</a>
+                                                            <div class="dropdown-divider"></div>
+                                                            <a class="dropdown-item" href="#" onclick="PasswordModal('@item.RealEmpCode')"><i class="fa fa-user-secret"></i> Reset Password</a>
+                                                        </div>
+                                                    </div>
+                                                </td>
+
+
+                                            </tr>
+                                        }
+                                    }
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="EmployeeMaster" class="btn btn-xs btn-success" type="submit">
+                        <i class="fa fa-arrow-left"></i> Back to Employee Creation
+                    </a>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+<script type="text/javascript">
+    $(function () {
+        $('body').removeClass("");
+        $('body').addClass("sidebar-mini layout-fixed layout-navbar-fixed text-sm sidebar-collapse");
+    })
+</script>

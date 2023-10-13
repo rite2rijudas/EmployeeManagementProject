@@ -1,0 +1,480 @@
+﻿@model EMPLOYEE_MANAGEMENT.Models.EmployeeDetails
+@{
+    ViewBag.Title = "EmployeeProfile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script src="~/Content/resources/jquery/jquery.passwordRequirements.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('.pr-password').passwordRequirements({});
+    });
+
+
+    function UploadFile(Document) {
+        var data;
+        var flag = false;
+        var filedata = new FormData();
+        if (Document == "ProfileImage") {
+            if ($("#profile_image").val() == "") {
+                swal({
+                    title: "Please select your profile picture ",
+                    icon: "warning",
+                });
+                return false;
+            } else if ( $("#profile_image").val() != "") {
+                $("#signature_image").val("");
+                data = $('#profile_image')[0].files[0];
+                if (data.type == "image/jpg" || data.type == "image/jpeg") {
+                    flag = true;
+                } else {
+                    flag = false;
+                    swal({
+                        title: "Please add your image in jpg format ",
+                        icon: "warning",
+                    });
+                    return false;
+                }
+            }
+
+        } else if (Document == "Signature") {
+            if ( $("#signature_image").val() == "" ) {
+                swal({
+                    title: "Please select your signature ",
+                    icon: "warning",
+                });
+                return false;
+            } else if ( $("#signature_image").val() != "") {
+                $("#profile_image").val("");
+                data = $('#signature_image')[0].files[0];
+                if (data.type == "image/jpg" || data.type == "image/jpeg") {
+                    flag = true;
+                } else {
+                    flag = false;
+                    swal({
+                        title: "Please add your signature in jpg format ",
+                        icon: "warning",
+                    });
+                    return false;
+                }
+
+            }
+        }
+
+
+
+         if (flag) {
+            //upload part
+            if (data != "") {
+                var randomnumber = Math.floor(100000 + Math.random() * 900000);
+                var name = randomnumber + data.name;
+                filedata.append(Document, data,name);
+
+
+                $.ajax({
+                    url: '@Url.Action("FileSave","Employee")',
+                    type: "POST",
+                    contentType: false,
+                    processData: false,
+                    data: filedata,
+                    success: function (result) {
+                        var response = JSON.parse(result);
+                        if (response["status"] == "1") {
+                            $("#profile_image").val("");
+                            $("#signature_image").val("");
+                            var profilepage = '@Url.Action("EmployeeProfile", "Employee")';
+                            if (response["msg"]!="") {
+
+                                swal({ title: response["msg"], icon: "success" }).then((value) => { window.location.href = profilepage; });;
+                            } else {
+
+                              window.location.href = profilepage;
+                            }
+
+                        }
+                        if (response["status"] == "0") {
+                            if (response["msg"]!="") {
+
+                                swal({ title: response["msg"], icon: "error" });
+                            }
+                        }
+
+                    },
+                    error: function (err) {
+
+                        }
+                    });
+            }
+        }
+
+
+    }
+
+    function ChangeOldPassword() {
+        flag = true;
+        var oldpass = $("#oldpassword").val();
+        var newpass = $("#newpassword").val();
+     var retypepass = $("#retypepassword").val();
+
+        if (oldpass == "") {
+            flag = false;
+            swal({
+                title: "Please enter your old password ",
+                icon: "warning",
+            });
+            return false;
+        }
+        if (newpass == "") {
+            flag = false;
+            swal({
+                title: "Please enter your new password ",
+                icon: "warning",
+            });
+            return false;
+        }
+        if (retypepass == "") {
+            flag = false;
+            swal({
+                title: "Please confirm your new  password ",
+                icon: "warning",
+            });
+            return false;
+        }
+        if (newpass != retypepass) {
+            flag = false;
+            swal({
+                title: "Passwords are not same",
+                icon: "warning",
+            });
+            return false;
+        }
+        if (!VerifyPasswordStrength()) {
+            flag = false;
+            return false;
+        }
+
+        if (flag) {
+             $.ajax({
+
+                    url: '@Url.Action("ChangeOldPassword", "Employee")',
+                    dataType: "json",
+                    data: JSON.stringify({ OldPassword: oldpass, NewPassword: newpass }),
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8",
+                    success: function (result) {
+
+                        var response = JSON.parse(result);
+
+                        if (response["stat"] == "1") {
+
+
+                            if (response["msg"] != "") {
+
+                                swal({
+                                    title: response["msg"],
+                                    icon: "success",
+                                }).then((value) => { foo(); });
+                            } else {
+
+                             foo();
+                            }
+
+                        } else if (response["stat"] == "0") {
+
+                            if (response["msg"] != "") {
+                                swal({
+                                    title: response["msg"],
+                                    icon: "error",
+                                });
+
+                            }
+
+                        }
+
+                    },
+                    error: function (xhr) {
+                        //swal("error");
+                        console.log(xhr);
+                    }
+             });
+        }
+
+    }
+
+    function VerifyPasswordStrength() {
+
+        let flag = true;
+
+        let newpassword = $("#newpassword").val().trim().replace(" ", "");
+
+        const passwordformat = /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])[a-zA-Z\d!@@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}/g;
+
+        if (!passwordformat.test(newpassword)) {
+            flag = false;
+        }
+
+
+        return flag;
+    }
+
+     function foo() {
+            var url = '@Url.Action("LogOut", "Login")';
+            window.location.href = url
+         }
+</script>
+
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>Employee </h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="#">  </a></li>
+                        <li class="breadcrumb-item active">Profile Management</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="content">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card card-primary card-outline">
+                    <div class="card-body box-profile">
+                        <div class="text-center">
+                            <img class="profile-user-img img-fluid img-circle" src="@Model.ProfileImageName" alt="User profile picture">
+                        </div>
+                        <h3 class="profile-username text-center">@Model.EmployeeName</h3>
+                        <p class="text-muted text-center">@Model.Designation</p>
+                        <ul class="list-group list-group-unbordered mb-3">
+                            <li class="list-group-item">
+                                <b>Wish me on</b> <a class="float-right">@Model.DOB</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-9">
+                <div class="card">
+                    <div class="card-header p-2">
+                        <ul class="nav nav-pills">
+                            <li class="nav-item"><a class="nav-link active" href="#about" data-toggle="tab">About</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#security" data-toggle="tab">Secuity</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#usergroups" data-toggle="tab">Member of</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#profileImage" data-toggle="tab">Profile Image</a></li>
+                            <li class="nav-item"><a class="nav-link" href="#signature" data-toggle="tab">Signature</a></li>
+                        </ul>
+                    </div>
+                    <div class="card-body">
+                        <div class="tab-content">
+                            <div class="active tab-pane" id="about">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label>Employee Code</label>
+                                        <div class="input-group input-group-sm">
+                                            @Html.TextBoxFor(model => model.EmpCode, new { @class = "form-control form-control-sm", @type = "text", @disabled = true })
+                                            <div class="input-group-append">
+                                                <div class="input-group-text"><i class="fa fa-user-secret"></i></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label>Grade</label>
+                                        <div class="input-group input-group-sm">
+                                            @Html.TextBoxFor(model => model.Grade, new { @class = "form-control form-control-sm", @type = "text", @disabled = true })
+                                            <div class="input-group-append">
+                                                <div class="input-group-text"><i class="fa fa-user-ninja"></i></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                  
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label>Department</label>
+                                        <div class="input-group input-group-sm">
+                                            @Html.TextBoxFor(model => model.Department, new { @class = "form-control form-control-sm", @type = "text", @disabled = true })
+                                            <div class="input-group-append">
+                                                <div class="input-group-text"><i class="fa fa-tree"></i></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label>Additional Department in Charge</label>
+                                        <div class="input-group input-group-sm">
+                                            <div class="form-control form-control-sm disabled">
+
+                                                @if (!string.IsNullOrEmpty(Model.AdditionalDepartment))
+                                                {
+                                                    string[] arr = Model.AdditionalDepartment.Split(',');
+
+                                                    for (int i = 0; i < arr.Length; i++)
+                                                    {
+                                                        <span class="badge badge-danger">@arr[i]</span>
+                                                    }
+
+
+                                                }
+                                              
+
+
+                                            </div>
+                                            <div class="input-group-append">
+                                                <div class="input-group-text"><i class="fa fa-tree"></i></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label>Contact Number</label>
+                                        <div class="input-group input-group-sm">
+                                            @Html.TextBoxFor(model => model.ContactNo, new { @class = "form-control form-control-sm", @type = "text", @disabled = true })
+                                            <div class="input-group-append">
+                                                <div class="input-group-text"><i class="fa fa-phone-square"></i></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label>Email Address</label>
+                                        <div class="input-group input-group-sm">
+                                            @Html.TextBoxFor(model => model.EmailAddress, new { @class = "form-control form-control-sm", @type = "text", @disabled = true })
+                                            <div class="input-group-append">
+                                                <div class="input-group-text"><i class="fa fa-mail-bulk"></i></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane" id="security">
+                                <div class="post">
+                                    <div class="user-block">
+
+                                        <span class="username" style="margin-left:0px !important">
+                                            <a href="#">Last Login Details</a>
+
+                                        </span>
+                                        <span class="description">At @Model.LastLoginTime today</span>
+                                    </div>
+
+                                </div>
+
+                                <div class="post">
+                                    <div class="form-group">
+                                        <div class="row">
+                                            <h3 class="card-title pb-2 pl-2">Change Password</h3>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <label>Old Password</label>
+                                                <input id="oldpassword" type="password" class="form-control form-control-sm" placeholder="****" />
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label>New Password</label>
+                                                <input id="newpassword" type="password"  class="form-control form-control-sm pr-password" placeholder="****" />
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label>Retype New Password</label>
+                                                <input id="retypepassword" type="password" class="form-control form-control-sm pr-password" placeholder="****" />
+                                            </div>
+                                        </div>
+                                        <div class="row">
+
+                                            <div class="col-md-12">
+                                                <button class="btn btn-sm btn-default" onclick="return ChangeOldPassword()">
+                                                    <i class="fa fa-lock"></i>&nbsp; Change Password
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+                            <div class="tab-pane" id="usergroups">
+                                <div class="post">
+                                    <div class="user-block">
+
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>Group Name</th>
+
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (!string.IsNullOrEmpty(Model.MembersOf))
+                                                {
+                                                    string[] MOF = Model.MembersOf.Split(',');
+
+                                                    for (int i = 0; i < MOF.Length; i++)
+                                                    {
+                                                        <tr>
+                                                            <td>@(i+1)</td>
+                                                            <td>@MOF[i]</td>
+                                                        </tr>
+                                                    }
+
+                                                }
+                                                @*<tr>
+                                                        <td>1</td>
+                                                        <td>Indenter</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>2</td>
+                                                        <td>Planning IC</td>
+                                                    </tr>*@
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane" id="profileImage">
+                                <div class="post">
+                                    <div class="user-block">
+
+                                        <input type="file" id="profile_image" accept=".jpg,.jpeg" />
+                                        <button class="btn btn-sm btn-default" onclick="return UploadFile('ProfileImage')">
+                                            <i class="fa fa-upload"> </i>&nbsp; Upload Profile Image
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane" id="signature">
+                                <div class="post">
+                                    <div class="user-block">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <input type="file" id="signature_image" accept=".jpg,.jpeg" />
+                                            </div>
+                                            <div class="col-md-3">
+                                                <button class="btn btn-sm btn-default" onclick="return UploadFile('Signature')">
+                                                    <i class="fa fa-upload"> </i>&nbsp; Upload Signature
+                                                </button>
+
+                                            </div>
+
+                                            <div class="col-md-5" style="text-align: right;">
+                                                <img src="@Model.SignatureName" style="width: 200px; height: 200px; min-height: auto; border: 2px; border-style: double; margin-left: 90px;">
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+

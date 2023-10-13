@@ -1,0 +1,193 @@
+﻿@model EMPLOYEE_MANAGEMENT.Models.MasterEntryDetails
+@{
+    ViewBag.Title = "MasterEntry";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var errormsg = @Html.Raw(Json.Encode(TempData["errormsg"]));
+        if (errormsg != null) {
+            swal({
+                title: errormsg,
+                icon: "error"
+            });
+        }
+        var successmsg = @Html.Raw(Json.Encode(TempData["successmsg"]));
+        if (successmsg != null) {
+            swal({
+                title: successmsg,
+                icon: "success"
+            });
+        }
+    });
+
+
+    $(function () {
+        $('#mastertype').on("select2:select", function (e) {
+            DuplicateValidation("MasterValue");
+        });
+
+        $("#mastervalue").blur(function () {
+            let status = DuplicateValidation("MasterValue");
+            if (!status) {
+                $(this).focus();
+            }
+        });
+
+    });
+
+     function DuplicateValidation(FieldName) {
+
+
+        var data;
+        var flag = true;
+        var isvalid = false;
+
+         if (FieldName == "MasterValue") {
+            data = $("#mastervalue").val();
+            $("#mastervalue").removeClass("is-invalid is-valid");
+        } 
+
+        if (flag) {
+          if (data != "") {
+
+             $.ajax({
+
+                    url: '@Url.Action("DuplicateCheckMasterType", "MasterEntry")',
+                 dataType: "json",
+                 data: JSON.stringify({ FieldName: FieldName, Value: data, MasterCode: $('#mastertype option:selected').val(), RecordId: $("#recordid").val() }),
+                     type: "POST",
+                     async: false,
+                    contentType: "application/json; charset=utf-8",
+                    success: function (result) {
+
+                        var response = JSON.parse(result);
+
+                        if (response["stat"] == "1") {
+
+
+                            if (FieldName == "MasterValue") {
+                                $("#mastervalue").addClass("is-invalid");
+                                isvalid = false;
+                            } 
+
+                        } else if (response["stat"] == "0") {
+
+                            if (FieldName == "MasterValue") {
+                                $("#mastervalue").addClass("is-valid");
+                                isvalid = true;
+
+                            } 
+
+                        } else if (response["stat"] == "2") {
+                            if (response["msg"] != "") {
+                                swal(response["msg"]);
+                                isvalid = false;
+                                return false;
+                            }
+                        }
+
+                    },
+                    error: function (xhr) {
+                        //swal("error");
+                    }
+             });
+
+          } else {
+            //swal({
+            //    title: "Please Enter " + FieldName,
+            //    icon:"warning"
+            //});
+              if (FieldName == "MasterValue") {
+                $("#mastervalue").addClass("is-invalid");
+                return isvalid;
+            } 
+          }
+        }
+
+        return isvalid;
+
+    }
+
+    function ValidateFields() {
+        var flag = true;
+
+        var isValidMasterValue = DuplicateValidation("MasterValue");
+        if (!isValidMasterValue) {
+            
+
+            flag = false;
+            return flag;
+        }
+
+        return flag;
+    }
+
+</script>
+
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-md-12">
+                    <h1>Master Entry</h1>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="col-md-8">
+            @using (Html.BeginForm("MasterEntry", "MasterEntry", FormMethod.Post))
+            {
+                @Html.HiddenFor(model=>model.RecordId,new {@id="recordid"})
+            <div class="card card-secondary">
+
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-cogs text-teal"></i> Master Entry
+                    </h3>
+                </div>
+
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="form-group row">
+                                        <label for="" class="col-sm-2 col-form-label">Type</label>
+                                        <div class="col-md-4">
+                                            @Html.DropDownListFor(model => model.MasterCode, (IEnumerable<SelectListItem>)ViewBag.MasterItemTypes, "--Select--", new { @class = "form-control form-control-sm select2", @id = "mastertype" })
+
+                                        </div>
+                                        <label for="" class="col-sm-2 col-form-label">Value</label>
+                                        <div class="col-sm-4">
+                                            @Html.TextBoxFor(model => model.RecordName, new { @class = "form-control form-control-sm ", @id = "mastervalue" })
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                       
+
+                    </div>
+                </div>
+
+
+                <div class="card-footer">
+                    <button class="btn btn-info btn-sm" type="submit" value="Save" name="Submit" onclick="ValidateFields()">
+                        <i class="fa fa-rocket"></i> Save Master Entry
+                    </button>
+                    <a class="btn btn-secondary btn-sm" type="button" href="@Url.Action("MasterEntryView", "MasterEntry")">
+                        <i class="fa fa-eye"></i>View Masters 
+                    </a>
+                </div>
+            </div>
+            }
+        </div>
+    </section>
+</div>

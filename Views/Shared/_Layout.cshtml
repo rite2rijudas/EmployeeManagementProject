@@ -1,0 +1,63 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <title>@ViewBag.Title -Employee Management</title>
+
+    @Styles.Render("~/Content/css")
+   
+
+    @Scripts.Render("~/bundles/jquery")
+    <script src="~/Content/resources/datatables/bs4/dataTables.bootstrap4.js"></script>
+   
+<script src="https://cdn.ckeditor.com/4.16.2/standard-all/ckeditor.js"></script>
+    <style>
+    </style>
+</head>
+<body class="sidebar-mini   layout-fixed layout-navbar-fixed text-sm">
+    <div class="wrapper">
+        @Html.Partial("_Header")
+        @RenderBody()
+        @Html.Partial("_Aside")
+        @Html.Partial("_Sidebar")
+        @Html.Partial("_Footer")
+    </div>
+
+    <script type="text/javascript">
+        $(function () {
+            $('.select2').select2()
+
+            $('.select2bs4').select2({
+                theme: 'bootstrap4'
+            })
+
+            $('.datepicker').datepicker({
+                format: 'dd/mm/yyyy'
+            });
+            $('.monthpicker').datepicker({
+                format: 'MM/yyyy'
+            });
+            $('.yearpicker').datepicker({
+                format: 'yyyy'
+            });
+            $(".number").keypress(function (e) {
+                if (e.which != 8 && e.which != 0 && (e.which < 48 || e.which > 57)) {
+                    return false;
+                }
+            });
+            $(".ds").DataTable({
+                "responsive": true,
+                "lengthChange": false,
+                "autoWidth": false
+            })
+        })
+
+    </script>
+
+   
+    
+    
+</body>
+</html>
