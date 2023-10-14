@@ -2,6 +2,7 @@
 *.cached
 *.suo
 *.dll
+<<<<<<< HEAD
 *.vsidx
 /.vs/*
 
@@ -9,3 +10,9 @@
 /obj/*
 
 .vs/EMPLOYEE_MANAGEMENT/v17/.suo
+=======
+
+.vs/
+bin/
+obj/
+>>>>>>> d64c85a29ac72cc3ff53a4ad4150f51715c5c216
