@@ -2,3 +2,10 @@
 *.cached
 *.suo
 *.dll
+*.vsidx
+/.vs/*
+
+/bin/*
+/obj/*
+
+.vs/EMPLOYEE_MANAGEMENT/v17/.suo
